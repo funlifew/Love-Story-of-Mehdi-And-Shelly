@@ -1,11 +1,10 @@
-/* Base Configuration */
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* Enhanced CSS fixes and improvements */
 
-body {
+/* Smooth scrolling for better user experience */
+html {
+    scroll-behavior: smooth;
+}
+body{
     background: linear-gradient(-45deg, #ff6a88, #ffb199, #ff9a9e, #fbc2eb, #a18cd1);
     background-size: 500% 500%;
     animation: bgLove 10s ease-in-out infinite alternate-reverse;
@@ -13,13 +12,15 @@ body {
     overflow-x: hidden;
     direction: ltr;
 }
-.container {
-    height: 800vh;
-    position: relative;
-}
-/* End of Base Configuration */
 
-/* Scene Section */
+/* Enhanced container for proper scroll height */
+.container {
+    height: 800vh; /* Ensure enough scroll space */
+    position: relative;
+    overflow: hidden; /* Prevent horizontal scroll */
+}
+
+/* Scene positioning improvements */
 .scene {
     position: fixed;
     top: 0;
@@ -29,42 +30,41 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1;
 }
-/* End of Scene Section */
 
-/* All characters start hidden */
+/* Character improvements */
 .character {
     position: absolute;
     width: 120px;
     height: 120px;
     opacity: 0;
-    transition: all 0.3s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+    pointer-events: none; /* Prevent interference with scroll */
 }
 
-/* Mehdi - side view */
+/* Enhanced character positioning */
 .mehdi-side {
-    left: -200px; /* Start from outside left */
+    left: -200px;
     top: 50%;
     transform: translateY(-50%);
 }
 
-/* Shelly - side view */
 .shelly-side {
-    right: -200px; /* Start from outside right */
+    right: -200px;
     top: 50%;
     transform: translateY(-50%);
 }
 
-/* Mehdi - front view */
 .mehdi-front {
-    left: 40%; /* Final position left side of center */
+    left: 40%;
     top: 50%;
     transform: translate(-50%, -50%);
 }
 
-/* Shelly - front view */
 .shelly-front {
-    right: 40%; /* Final position right side of center */
+    right: 40%;
     top: 50%;
     transform: translate(50%, -50%);
 }
@@ -78,14 +78,24 @@ body {
     height: 80px;
     opacity: 0;
     scale: 0;
+    z-index: 10;
 }
 
-/* Heart bounce animation */
+/* Enhanced heart animation */
 .heart.animate {
     animation: heartBounce 1.5s ease-in-out infinite;
 }
 
-/* Different states for animation */
+@keyframes heartBounce {
+    0%, 100% { 
+        transform: translate(-50%, -50%) translateY(0) scale(1); 
+    }
+    50% { 
+        transform: translate(-50%, -50%) translateY(-20px) scale(1.1); 
+    }
+}
+
+/* Character visibility states */
 .character.visible {
     opacity: 1;
 }
@@ -94,52 +104,27 @@ body {
     opacity: 0;
 }
 
-/* Animation positions */
-.mehdi-side.entered {
-    left: 20%; /* When entering the scene */
-}
-
-.mehdi-side.exited {
-    left: -200px; /* When exiting the scene */
-}
-
-.shelly-side.entered {
-    right: 20%; /* When entering the scene */
-}
-
-.shelly-side.exited {
-    right: -200px; /* When exiting the scene */
-}
-
-/* Center positions for both characters */
-.mehdi-side.center {
-    left: 45%;
-    transform: translate(-50%, -50%);
-}
-
-.shelly-side.center {
-    right: 45%;
-    transform: translate(50%, -50%);
-}
-
-/* Text Box Section */
+/* Enhanced text box styling */
 .text-box {
     position: fixed;
     bottom: 50px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
     border-radius: 20px;
     padding: 30px 40px;
-    max-width: 600px;
+    max-width: 700px;
     width: 90%;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
     border: 2px solid rgba(255, 182, 193, 0.3);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.5s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
+    will-change: transform, opacity;
 }
 
 .text-box.active {
@@ -154,42 +139,54 @@ body {
     transform: translateX(-50%) translateY(20px);
 }
 
-/* Text Content Styling */
+/* Enhanced text content styling */
 .text-content {
-    font-family: 'Arial', sans-serif;
-    font-size: 1.2rem;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 1.3rem;
     line-height: 1.6;
     color: #333;
     text-align: center;
     margin: 0;
+    min-height: 1.6em;
 }
 
 .text-content .character-name {
     font-weight: bold;
     color: #e41e25;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     display: block;
     margin-bottom: 10px;
+    text-transform: capitalize;
 }
 
 .text-content .dialogue {
     font-style: italic;
-    color: #555;
+    color: #444;
+    quotes: """ """ "'" "'";
+}
+
+.text-content .dialogue::before {
+    content: open-quote;
+}
+
+.text-content .dialogue::after {
+    content: close-quote;
 }
 
 .text-content .narrator {
-    color: #666;
+    color: #555;
     font-weight: 500;
 }
 
-/* Typing Animation */
+/* Enhanced typing cursor */
 .typing-cursor {
     display: inline-block;
     width: 3px;
-    height: 1.2em;
+    height: 1.3em;
     background-color: #e41e25;
-    margin-left: 2px;
+    margin-left: 3px;
     animation: blink 1s infinite;
+    vertical-align: baseline;
 }
 
 @keyframes blink {
@@ -197,103 +194,235 @@ body {
     51%, 100% { opacity: 0; }
 }
 
-/* Text Box Responsive Design */
-@media (max-width: 768px) {
-    .text-box {
-        bottom: 30px;
-        padding: 20px 25px;
-        max-width: 350px;
-        width: 85%;
-    }
-    
-    .text-content {
-        font-size: 1rem;
-    }
-    
-    .text-content .character-name {
-        font-size: 1.2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .text-box {
-        bottom: 20px;
-        padding: 15px 20px;
-        max-width: 300px;
-        width: 80%;
-    }
-    
-    .text-content {
-        font-size: 0.9rem;
-    }
-}
-
-/* Text Box Animations */
-.text-box-enter {
-    animation: slideInUp 0.6s ease-out forwards;
-}
-
-.text-box-exit {
-    animation: slideOutDown 0.4s ease-in forwards;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(100px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-
-@keyframes slideOutDown {
-    from {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(-50%) translateY(100px);
-    }
-}
-
-/* Heart Beat Animation for Special Moments */
+/* Heart moment special styling */
 .text-box.heart-moment {
     border-color: #e41e25;
-    box-shadow: 0 20px 40px rgba(228, 30, 37, 0.2);
+    box-shadow: 
+        0 20px 40px rgba(228, 30, 37, 0.2),
+        0 0 20px rgba(228, 30, 37, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
     animation: heartBeat 1.5s ease-in-out infinite;
+    background: rgba(255, 245, 245, 0.95);
 }
 
 @keyframes heartBeat {
     0% { transform: translateX(-50%) scale(1); }
-    14% { transform: translateX(-50%) scale(1.02); }
+    14% { transform: translateX(-50%) scale(1.03); }
     28% { transform: translateX(-50%) scale(1); }
-    42% { transform: translateX(-50%) scale(1.02); }
+    42% { transform: translateX(-50%) scale(1.03); }
     70% { transform: translateX(-50%) scale(1); }
 }
 
-@keyframes heartBounce {
-    0%, 100% { 
-        transform: translate(-50%, -50%) translateY(0); 
-    }
-    50% { 
-        transform: translate(-50%, -50%) translateY(-20px); 
-    }
-}
-
-
-/* Cute Animations */
+/* Enhanced background animation */
 @keyframes bgLove {
     0% {
         background-position: 0% 50%;
     }
+    25% {
+        background-position: 100% 0%;
+    }
     50% {
-        background-position: 100% 50%;
+        background-position: 100% 100%;
+    }
+    75% {
+        background-position: 0% 100%;
     }
     100% {
         background-position: 0% 50%;
     }
 }
-/* End of Animations */
+
+/* Performance optimizations */
+.character, .text-box, .heart {
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Enhanced responsive design */
+@media (max-width: 1024px) {
+    .character {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .heart {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .text-box {
+        max-width: 600px;
+        padding: 25px 35px;
+    }
+    
+    .text-content {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .character {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .heart {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .text-box {
+        bottom: 30px;
+        padding: 20px 25px;
+        max-width: 500px;
+        width: 85%;
+    }
+    
+    .text-content {
+        font-size: 1.1rem;
+    }
+    
+    .text-content .character-name {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .character {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .heart {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .text-box {
+        bottom: 20px;
+        padding: 15px 20px;
+        max-width: 350px;
+        width: 80%;
+    }
+    
+    .text-content {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .text-content .character-name {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .text-box {
+        bottom: 30px;
+        padding: 20px;
+    }
+    
+    .typing-cursor {
+        animation-duration: 0.8s;
+    }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .character svg,
+    .heart svg {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .text-box {
+        background: rgba(40, 40, 40, 0.95);
+        border-color: rgba(255, 182, 193, 0.4);
+    }
+    
+    .text-content {
+        color: #f0f0f0;
+    }
+    
+    .text-content .dialogue {
+        color: #e0e0e0;
+    }
+    
+    .text-content .narrator {
+        color: #d0d0d0;
+    }
+    
+    .text-box.heart-moment {
+        background: rgba(60, 40, 40, 0.95);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .character,
+    .text-box,
+    .heart {
+        transition: none;
+        animation: none;
+    }
+    
+    .heart.animate {
+        animation: none;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .typing-cursor {
+        animation: none;
+        opacity: 1;
+    }
+    
+    body {
+        animation: none;
+    }
+}
+
+/* Focus and accessibility improvements */
+.text-box:focus-within {
+    outline: 2px solid #e41e25;
+    outline-offset: 2px;
+}
+
+/* Loading state */
+.text-box.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.text-box.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #e41e25;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error state */
+.text-box.error {
+    border-color: #ff4444;
+    background: rgba(255, 240, 240, 0.95);
+}
+
+.text-box.error .text-content {
+    color: #cc0000;
+}
