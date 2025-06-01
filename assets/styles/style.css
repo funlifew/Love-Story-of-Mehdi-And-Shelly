@@ -32,14 +32,256 @@ body {
 }
 /* End of Scene Section */
 
-/* Character Section */
+/* All characters start hidden */
 .character {
-    width: 100px;
-    height: 100px;
     position: absolute;
+    width: 120px;
+    height: 120px;
+    opacity: 0;
     transition: all 0.3s ease;
 }
-/* End of Character Section */
+
+/* Mehdi - side view */
+.mehdi-side {
+    left: -200px; /* Start from outside left */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Shelly - side view */
+.shelly-side {
+    right: -200px; /* Start from outside right */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Mehdi - front view */
+.mehdi-front {
+    left: 40%; /* Final position left side of center */
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Shelly - front view */
+.shelly-front {
+    right: 40%; /* Final position right side of center */
+    top: 50%;
+    transform: translate(50%, -50%);
+}
+
+.heart {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    opacity: 0;
+    scale: 0;
+}
+
+/* Heart bounce animation */
+.heart.animate {
+    animation: heartBounce 1.5s ease-in-out infinite;
+}
+
+/* Different states for animation */
+.character.visible {
+    opacity: 1;
+}
+
+.character.hidden {
+    opacity: 0;
+}
+
+/* Animation positions */
+.mehdi-side.entered {
+    left: 20%; /* When entering the scene */
+}
+
+.mehdi-side.exited {
+    left: -200px; /* When exiting the scene */
+}
+
+.shelly-side.entered {
+    right: 20%; /* When entering the scene */
+}
+
+.shelly-side.exited {
+    right: -200px; /* When exiting the scene */
+}
+
+/* Center positions for both characters */
+.mehdi-side.center {
+    left: 45%;
+    transform: translate(-50%, -50%);
+}
+
+.shelly-side.center {
+    right: 45%;
+    transform: translate(50%, -50%);
+}
+
+/* Text Box Section */
+.text-box {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px 40px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 182, 193, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s ease;
+    z-index: 1000;
+}
+
+.text-box.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.text-box.inactive {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(20px);
+}
+
+/* Text Content Styling */
+.text-content {
+    font-family: 'Arial', sans-serif;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #333;
+    text-align: center;
+    margin: 0;
+}
+
+.text-content .character-name {
+    font-weight: bold;
+    color: #e41e25;
+    font-size: 1.4rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.text-content .dialogue {
+    font-style: italic;
+    color: #555;
+}
+
+.text-content .narrator {
+    color: #666;
+    font-weight: 500;
+}
+
+/* Typing Animation */
+.typing-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.2em;
+    background-color: #e41e25;
+    margin-left: 2px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Text Box Responsive Design */
+@media (max-width: 768px) {
+    .text-box {
+        bottom: 30px;
+        padding: 20px 25px;
+        max-width: 350px;
+        width: 85%;
+    }
+    
+    .text-content {
+        font-size: 1rem;
+    }
+    
+    .text-content .character-name {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .text-box {
+        bottom: 20px;
+        padding: 15px 20px;
+        max-width: 300px;
+        width: 80%;
+    }
+    
+    .text-content {
+        font-size: 0.9rem;
+    }
+}
+
+/* Text Box Animations */
+.text-box-enter {
+    animation: slideInUp 0.6s ease-out forwards;
+}
+
+.text-box-exit {
+    animation: slideOutDown 0.4s ease-in forwards;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes slideOutDown {
+    from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(100px);
+    }
+}
+
+/* Heart Beat Animation for Special Moments */
+.text-box.heart-moment {
+    border-color: #e41e25;
+    box-shadow: 0 20px 40px rgba(228, 30, 37, 0.2);
+    animation: heartBeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartBeat {
+    0% { transform: translateX(-50%) scale(1); }
+    14% { transform: translateX(-50%) scale(1.02); }
+    28% { transform: translateX(-50%) scale(1); }
+    42% { transform: translateX(-50%) scale(1.02); }
+    70% { transform: translateX(-50%) scale(1); }
+}
+
+@keyframes heartBounce {
+    0%, 100% { 
+        transform: translate(-50%, -50%) translateY(0); 
+    }
+    50% { 
+        transform: translate(-50%, -50%) translateY(-20px); 
+    }
+}
 
 
 /* Cute Animations */
