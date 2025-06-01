@@ -1,0 +1,57 @@
+/* Base Configuration */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(-45deg, #ff6a88, #ffb199, #ff9a9e, #fbc2eb, #a18cd1);
+    background-size: 500% 500%;
+    animation: bgLove 10s ease-in-out infinite alternate-reverse;
+    margin: 0;
+    overflow-x: hidden;
+    direction: ltr;
+}
+.container {
+    height: 800vh;
+    position: relative;
+}
+/* End of Base Configuration */
+
+/* Scene Section */
+.scene {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* End of Scene Section */
+
+/* Character Section */
+.character {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    transition: all 0.3s ease;
+}
+/* End of Character Section */
+
+
+/* Cute Animations */
+@keyframes bgLove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+/* End of Animations */
