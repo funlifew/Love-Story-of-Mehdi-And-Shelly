@@ -1,15 +1,14 @@
 /**
  * TextBox Animation Manager
- * Handles all text animations and story progression
+ * Handles text display with appearing/disappearing animations only
  */
 class TextBoxManager {
     constructor() {
         this.textBox = document.getElementById('textBox');
         this.textContent = document.getElementById('textContent');
-        this.currentTextIndex = 0;
-        this.isTyping = false;
-        this.typingSpeed = 50; // milliseconds per character
-        this.currentTimeouts = [];
+        this.currentTextKey = null;
+        this.currentStoryData = null;
+        this.isVisible = false;
         
         this.init();
     }
@@ -26,18 +25,17 @@ class TextBoxManager {
      * Setup event listeners for text box interactions
      */
     setupEventListeners() {
-        // Click to skip typing animation
+        // Optional: Click to hide text box
         this.textBox.addEventListener('click', () => {
-            if (this.isTyping) {
-                this.skipTypingAnimation();
+            if (this.isVisible) {
+                this.hideTextBox();
             }
         });
 
         // Keyboard support for accessibility
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Space' && this.isTyping) {
-                e.preventDefault();
-                this.skipTypingAnimation();
+            if (e.key === 'Escape' && this.isVisible) {
+                this.hideTextBox();
             }
         });
     }
@@ -46,20 +44,26 @@ class TextBoxManager {
      * Show text box with animation
      */
     showTextBox() {
-        this.textBox.classList.remove('inactive', 'text-box-exit');
-        this.textBox.classList.add('active', 'text-box-enter');
+        if (!this.isVisible) {
+            this.textBox.classList.remove('inactive', 'text-box-exit');
+            this.textBox.classList.add('active', 'text-box-enter');
+            this.isVisible = true;
+        }
     }
 
     /**
      * Hide text box with animation
      */
     hideTextBox() {
-        this.textBox.classList.remove('active', 'text-box-enter');
-        this.textBox.classList.add('inactive', 'text-box-exit');
+        if (this.isVisible) {
+            this.textBox.classList.remove('active', 'text-box-enter');
+            this.textBox.classList.add('inactive', 'text-box-exit');
+            this.isVisible = false;
+        }
     }
 
     /**
-     * Display text with typing animation
+     * Display text instantly with appear animation
      * @param {string} text - The text to display
      * @param {string} type - Type of text: 'dialogue', 'narrator', 'character-intro'
      * @param {string} characterName - Name of the character (optional)
@@ -67,11 +71,8 @@ class TextBoxManager {
      */
     displayText(text, type = 'narrator', characterName = '', isHeartMoment = false) {
         return new Promise((resolve) => {
-            // Clear any existing timeouts
-            this.clearTimeouts();
-            
-            // Reset text content
-            this.textContent.innerHTML = '';
+            // Store current state
+            this.storeTextState(text, { text, type, characterName, isHeartMoment });
             
             // Add heart moment styling if needed
             if (isHeartMoment) {
@@ -80,155 +81,96 @@ class TextBoxManager {
                 this.textBox.classList.remove('heart-moment');
             }
 
-            // Show text box
-            this.showTextBox();
-
             // Prepare text content based on type
-            let fullText = '';
-            if (type === 'dialogue' && characterName) {
-                fullText = `<span class="character-name">${characterName}:</span><span class="dialogue">"${text}"</span>`;
-            } else if (type === 'character-intro') {
-                fullText = `<span class="character-name">${text}</span>`;
-            } else {
-                fullText = `<span class="narrator">${text}</span>`;
-            }
-
-            // Start typing animation
-            this.typeText(fullText, resolve);
+            let fullText = this.formatText(text, type, characterName);
+            
+            // Set text content instantly
+            this.textContent.innerHTML = fullText;
+            
+            // Show text box with animation
+            this.showTextBox();
+            
+            // Resolve immediately since there's no typing animation
+            resolve();
         });
     }
 
     /**
-     * Type text character by character
-     * @param {string} fullText - The full HTML text to type
-     * @param {Function} callback - Callback function when typing is complete
+     * Display text instantly without any animation (for scroll restoration)
+     * @param {string} text - The text to display
+     * @param {string} type - Type of text: 'dialogue', 'narrator', 'character-intro'
+     * @param {string} characterName - Name of the character (optional)
+     * @param {boolean} isHeartMoment - Whether this is a romantic moment
      */
-    typeText(fullText, callback) {
-        this.isTyping = true;
+    displayTextInstant(text, type = 'narrator', characterName = '', isHeartMoment = false) {
+        // Store current state
+        this.storeTextState(text, { text, type, characterName, isHeartMoment });
         
-        // Create a temporary element to parse HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = fullText;
-        
-        let currentIndex = 0;
-        const textNodes = this.extractTextNodes(tempDiv);
-        let allText = textNodes.map(node => node.textContent).join('');
-        
-        // Create the structure with empty text
-        this.textContent.innerHTML = fullText.replace(/>[^<]+</g, '><');
-        
-        // Find text elements to fill
-        const textElements = this.textContent.querySelectorAll('span');
-        let elementIndex = 0;
-        let charIndex = 0;
+        // Add heart moment styling if needed
+        if (isHeartMoment) {
+            this.textBox.classList.add('heart-moment');
+        } else {
+            this.textBox.classList.remove('heart-moment');
+        }
 
-        const typeNextChar = () => {
-            if (currentIndex < allText.length && this.isTyping) {
-                const currentElement = textElements[elementIndex];
-                if (currentElement) {
-                    const originalText = textNodes[elementIndex].textContent;
-                    
-                    if (charIndex < originalText.length) {
-                        currentElement.textContent = originalText.substring(0, charIndex + 1);
-                        charIndex++;
-                    } else {
-                        elementIndex++;
-                        charIndex = 0;
-                    }
-                }
-                
-                currentIndex++;
-                
-                const timeout = setTimeout(typeNextChar, this.typingSpeed);
-                this.currentTimeouts.push(timeout);
-            } else {
-                this.isTyping = false;
-                // Add cursor for a moment
-                this.addTypingCursor();
-                
-                // Remove cursor after 2 seconds and resolve
-                const cursorTimeout = setTimeout(() => {
-                    this.removeTypingCursor();
-                    callback();
-                }, 2000);
-                this.currentTimeouts.push(cursorTimeout);
-            }
+        // Prepare text content based on type
+        let fullText = this.formatText(text, type, characterName);
+        
+        // Set text content instantly
+        this.textContent.innerHTML = fullText;
+        
+        // Show text box instantly (no animation)
+        this.textBox.classList.remove('inactive', 'text-box-exit');
+        this.textBox.classList.add('active');
+        this.isVisible = true;
+    }
+
+    /**
+     * Format text based on type
+     * @param {string} text - The text to format
+     * @param {string} type - Type of text
+     * @param {string} characterName - Character name if applicable
+     * @returns {string} - Formatted HTML text
+     */
+    formatText(text, type, characterName) {
+        if (type === 'dialogue' && characterName) {
+            return `<span class="character-name">${characterName}:</span><span class="dialogue">"${text}"</span>`;
+        } else if (type === 'character-intro') {
+            return `<span class="character-name">${text}</span>`;
+        } else {
+            return `<span class="narrator">${text}</span>`;
+        }
+    }
+
+    /**
+     * Store current text state for scroll restoration
+     * @param {string} textKey - Text identifier
+     * @param {Object} storyData - Story data object
+     */
+    storeTextState(textKey, storyData) {
+        this.currentTextKey = textKey;
+        this.currentStoryData = storyData;
+    }
+
+    /**
+     * Get current stored text state
+     * @returns {Object} - Current text state
+     */
+    getCurrentTextState() {
+        return {
+            textKey: this.currentTextKey,
+            storyData: this.currentStoryData
         };
-
-        typeNextChar();
     }
 
     /**
-     * Extract text nodes from HTML element
-     * @param {HTMLElement} element - Element to extract text from
-     * @returns {Array} Array of text nodes
+     * Clear current text and hide text box
      */
-    extractTextNodes(element) {
-        const textNodes = [];
-        const walker = document.createTreeWalker(
-            element,
-            NodeFilter.SHOW_TEXT,
-            null,
-            false
-        );
-        
-        let node;
-        while (node = walker.nextNode()) {
-            if (node.textContent.trim()) {
-                textNodes.push(node);
-            }
-        }
-        
-        return textNodes;
-    }
-
-    /**
-     * Skip typing animation and show full text immediately
-     */
-    skipTypingAnimation() {
-        if (!this.isTyping) return;
-        
-        this.clearTimeouts();
-        this.isTyping = false;
-        
-        // Show complete text immediately
-        const spans = this.textContent.querySelectorAll('span');
-        spans.forEach((span, index) => {
-            const textNode = this.extractTextNodes(span.parentElement)[index];
-            if (textNode) {
-                span.textContent = textNode.textContent;
-            }
-        });
-        
-        this.removeTypingCursor();
-    }
-
-    /**
-     * Add typing cursor to the end of text
-     */
-    addTypingCursor() {
-        const cursor = document.createElement('span');
-        cursor.className = 'typing-cursor';
-        cursor.id = 'typingCursor';
-        this.textContent.appendChild(cursor);
-    }
-
-    /**
-     * Remove typing cursor
-     */
-    removeTypingCursor() {
-        const cursor = document.getElementById('typingCursor');
-        if (cursor) {
-            cursor.remove();
-        }
-    }
-
-    /**
-     * Clear all active timeouts
-     */
-    clearTimeouts() {
-        this.currentTimeouts.forEach(timeout => clearTimeout(timeout));
-        this.currentTimeouts = [];
+    clearText() {
+        this.textContent.innerHTML = '';
+        this.hideTextBox();
+        this.currentTextKey = null;
+        this.currentStoryData = null;
     }
 
     /**
@@ -245,11 +187,20 @@ class TextBoxManager {
     }
 
     /**
+     * Check if text box is currently visible
+     * @returns {boolean} - Visibility state
+     */
+    isTextBoxVisible() {
+        return this.isVisible;
+    }
+
+    /**
      * Clean up and destroy text box manager
      */
     destroy() {
-        this.clearTimeouts();
         this.hideTextBox();
+        this.currentTextKey = null;
+        this.currentStoryData = null;
     }
 }
 

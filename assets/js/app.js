@@ -8,6 +8,8 @@ class StoryAnimationController {
         this.currentScene = 0;
         this.isAnimating = false;
         this.timeline = null;
+        this.currentTextKey = null;
+        this.sceneTextStates = new Map(); // Track text states per scene
         
         this.init();
     }
@@ -83,23 +85,91 @@ class StoryAnimationController {
     }
 
     /**
+     * Get the appropriate text for a given scroll progress
+     * @param {number} sceneNumber - Scene number (1-5)
+     * @param {number} progress - Progress within scene (0-1)
+     * @returns {string|null} - Text key to display
+     */
+    getTextForProgress(sceneNumber, progress) {
+        switch(sceneNumber) {
+            case 1:
+                if (progress >= 0.7) return 'mehdiThought';
+                if (progress >= 0.3) return 'mehdiIntro';
+                if (progress >= 0) return 'mehdiEnters';
+                break;
+            case 2:
+                if (progress >= 0.9) return 'shellyThought';
+                if (progress >= 0.7) return 'shellyIntro';
+                if (progress >= 0.4) return 'shellyEnters';
+                if (progress >= 0) return 'transition1';
+                break;
+            case 3:
+                if (progress >= 0.8) return 'shellyMeetsMehdi';
+                if (progress >= 0.5) return 'mehdiMeetsShelly';
+                if (progress >= 0.3) return 'firstSight';
+                if (progress >= 0) return 'meetingMoment';
+                break;
+            case 4:
+                if (progress >= 0.8) return 'shellyResponse';
+                if (progress >= 0.4) return 'mehdiConfession';
+                if (progress >= 0) return 'connectionGrows';
+                break;
+            case 5:
+                if (progress >= 0.9) return 'theEnd';
+                if (progress >= 0.7) return 'finalWords';
+                if (progress >= 0.3) return 'heartAppears';
+                if (progress >= 0) return 'loveBlossoms';
+                break;
+        }
+        return null;
+    }
+
+    /**
+     * Update text based on current scroll position
+     * @param {number} sceneNumber - Current scene
+     * @param {number} progress - Progress within scene
+     * @param {boolean} isScrollingUp - Whether user is scrolling up
+     */
+    updateTextForProgress(sceneNumber, progress, isScrollingUp = false) {
+        const textKey = this.getTextForProgress(sceneNumber, progress);
+        
+        if (textKey && textKey !== this.currentTextKey) {
+            this.currentTextKey = textKey;
+            
+            if (isScrollingUp) {
+                // For scrolling up, show text instantly
+                this.playStoryTextInstant(textKey);
+            } else {
+                // For scrolling down, use normal typing animation
+                this.playStoryText(textKey);
+            }
+        } else if (!textKey && this.currentTextKey) {
+            // Clear text if no text should be shown at this position
+            this.textBoxManager.clearText();
+            this.currentTextKey = null;
+        }
+    }
+
+    /**
      * Create scroll-triggered animation sequences
      */
     createScrollTriggers() {
+        let lastScrollY = 0;
+        
         // Scene 1: Mehdi enters (0-20% scroll)
-        this.createScene1();
+        this.createScene1(lastScrollY);
         
         // Scene 2: Mehdi exits, Shelly enters (20-40% scroll)
-        this.createScene2();
+        this.createScene2(lastScrollY);
         
         // Scene 3: Both meet in center (40-60% scroll)
-        this.createScene3();
+        this.createScene3(lastScrollY);
         
         // Scene 4: Love develops (60-80% scroll)
-        this.createScene4();
+        this.createScene4(lastScrollY);
         
         // Scene 5: Heart appears (80-100% scroll)
-        this.createScene5();
+        this.createScene5(lastScrollY);
     }
 
     /**
@@ -112,16 +182,9 @@ class StoryAnimationController {
                 start: "top top",
                 end: "20% bottom",
                 scrub: 1,
-                onEnter: () => this.playStoryText('mehdiEnters'),
                 onUpdate: (self) => {
-                    if (self.progress > 0.3 && !this.characters.mehdiSide.classList.contains('text-shown')) {
-                        this.characters.mehdiSide.classList.add('text-shown');
-                        this.playStoryText('mehdiIntro');
-                    }
-                    if (self.progress > 0.7 && !this.characters.mehdiSide.classList.contains('dialogue-shown')) {
-                        this.characters.mehdiSide.classList.add('dialogue-shown');
-                        this.playStoryText('mehdiThought');
-                    }
+                    const isScrollingUp = self.direction === -1;
+                    this.updateTextForProgress(1, self.progress, isScrollingUp);
                 }
             }
         });
@@ -150,20 +213,9 @@ class StoryAnimationController {
                 start: "20% top",
                 end: "40% bottom",
                 scrub: 1,
-                onEnter: () => this.playStoryText('transition1'),
                 onUpdate: (self) => {
-                    if (self.progress > 0.4 && !this.characters.shellySide.classList.contains('entered')) {
-                        this.characters.shellySide.classList.add('entered');
-                        this.playStoryText('shellyEnters');
-                    }
-                    if (self.progress > 0.7 && !this.characters.shellySide.classList.contains('intro-shown')) {
-                        this.characters.shellySide.classList.add('intro-shown');
-                        this.playStoryText('shellyIntro');
-                    }
-                    if (self.progress > 0.9 && !this.characters.shellySide.classList.contains('dialogue-shown')) {
-                        this.characters.shellySide.classList.add('dialogue-shown');
-                        this.playStoryText('shellyThought');
-                    }
+                    const isScrollingUp = self.direction === -1;
+                    this.updateTextForProgress(2, self.progress, isScrollingUp);
                 }
             }
         });
@@ -198,20 +250,9 @@ class StoryAnimationController {
                 start: "40% top",
                 end: "60% bottom",
                 scrub: 1,
-                onEnter: () => this.playStoryText('meetingMoment'),
                 onUpdate: (self) => {
-                    if (self.progress > 0.3 && !this.scene3TextShown) {
-                        this.scene3TextShown = true;
-                        this.playStoryText('firstSight');
-                    }
-                    if (self.progress > 0.5 && !this.scene3Dialogue1) {
-                        this.scene3Dialogue1 = true;
-                        this.playStoryText('mehdiMeetsShelly');
-                    }
-                    if (self.progress > 0.8 && !this.scene3Dialogue2) {
-                        this.scene3Dialogue2 = true;
-                        this.playStoryText('shellyMeetsMehdi');
-                    }
+                    const isScrollingUp = self.direction === -1;
+                    this.updateTextForProgress(3, self.progress, isScrollingUp);
                 }
             }
         });
@@ -250,16 +291,9 @@ class StoryAnimationController {
                 start: "60% top",
                 end: "80% bottom",
                 scrub: 1,
-                onEnter: () => this.playStoryText('connectionGrows'),
                 onUpdate: (self) => {
-                    if (self.progress > 0.4 && !this.scene4Dialogue1) {
-                        this.scene4Dialogue1 = true;
-                        this.playStoryText('mehdiConfession');
-                    }
-                    if (self.progress > 0.8 && !this.scene4Dialogue2) {
-                        this.scene4Dialogue2 = true;
-                        this.playStoryText('shellyResponse');
-                    }
+                    const isScrollingUp = self.direction === -1;
+                    this.updateTextForProgress(4, self.progress, isScrollingUp);
                 }
             }
         });
@@ -289,20 +323,15 @@ class StoryAnimationController {
                 start: "80% top",
                 end: "100% bottom",
                 scrub: 1,
-                onEnter: () => this.playStoryText('loveBlossoms'),
                 onUpdate: (self) => {
-                    if (self.progress > 0.3 && !this.scene5Heart) {
-                        this.scene5Heart = true;
-                        this.playStoryText('heartAppears');
+                    const isScrollingUp = self.direction === -1;
+                    this.updateTextForProgress(5, self.progress, isScrollingUp);
+                    
+                    // Handle heart animation
+                    if (self.progress > 0.3 && !this.characters.heart.classList.contains('animate')) {
                         this.animateHeart();
-                    }
-                    if (self.progress > 0.7 && !this.scene5Final) {
-                        this.scene5Final = true;
-                        this.playStoryText('finalWords');
-                    }
-                    if (self.progress > 0.9 && !this.scene5End) {
-                        this.scene5End = true;
-                        this.playStoryText('theEnd');
+                    } else if (self.progress <= 0.3 && this.characters.heart.classList.contains('animate')) {
+                        this.stopHeartAnimation();
                     }
                 }
             }
@@ -326,11 +355,11 @@ class StoryAnimationController {
      * Animate heart with bounce effect
      */
     animateHeart() {
-        if (this.characters.heart) {
+        if (this.characters.heart && !this.characters.heart.classList.contains('animate')) {
             this.characters.heart.classList.add('animate');
             
             // Add continuous heartbeat animation
-            gsap.to(this.characters.heart, {
+            this.heartAnimation = gsap.to(this.characters.heart, {
                 scale: 1.1,
                 duration: 0.6,
                 yoyo: true,
@@ -341,7 +370,20 @@ class StoryAnimationController {
     }
 
     /**
-     * Play story text with proper timing
+     * Stop heart animation
+     */
+    stopHeartAnimation() {
+        if (this.characters.heart) {
+            this.characters.heart.classList.remove('animate');
+            if (this.heartAnimation) {
+                this.heartAnimation.kill();
+                this.heartAnimation = null;
+            }
+        }
+    }
+
+    /**
+     * Play story text with typing animation
      * @param {string} textKey - Key from STORY_TEXTS object
      */
     async playStoryText(textKey) {
@@ -365,6 +407,35 @@ class StoryAnimationController {
             );
         } catch (error) {
             console.error(`Error displaying text ${textKey}:`, error);
+        }
+    }
+
+
+    /**
+     * Play story text instantly (for scroll restoration)
+     * @param {string} textKey - Key from STORY_TEXTS object
+     */
+    playStoryTextInstant(textKey) {
+        if (!this.textBoxManager || !window.STORY_TEXTS) {
+            console.warn(`Cannot display text: ${textKey}`);
+            return;
+        }
+
+        const storyData = window.STORY_TEXTS[textKey];
+        if (!storyData) {
+            console.warn(`Story text not found: ${textKey}`);
+            return;
+        }
+
+        try {
+            this.textBoxManager.displayTextInstant(
+                storyData.text,
+                storyData.type || 'narrator',
+                storyData.character || '',
+                storyData.isHeartMoment || false
+            );
+        } catch (error) {
+            console.error(`Error displaying instant text ${textKey}:`, error);
         }
     }
 
@@ -437,16 +508,7 @@ class StoryAnimationController {
     resetAnimation() {
         window.scrollTo(0, 0);
         this.currentScene = 0;
-        
-        // Reset all flags
-        this.scene3TextShown = false;
-        this.scene3Dialogue1 = false;
-        this.scene3Dialogue2 = false;
-        this.scene4Dialogue1 = false;
-        this.scene4Dialogue2 = false;
-        this.scene5Heart = false;
-        this.scene5Final = false;
-        this.scene5End = false;
+        this.currentTextKey = null;
         
         // Reset character classes
         Object.values(this.characters).forEach(char => {
@@ -454,6 +516,14 @@ class StoryAnimationController {
                 char.classList.remove('text-shown', 'dialogue-shown', 'entered', 'intro-shown', 'animate');
             }
         });
+
+        // Stop heart animation
+        this.stopHeartAnimation();
+        
+        // Clear text
+        if (this.textBoxManager) {
+            this.textBoxManager.clearText();
+        }
     }
 
     /**
@@ -463,6 +533,9 @@ class StoryAnimationController {
         ScrollTrigger.killAll();
         if (this.timeline) {
             this.timeline.kill();
+        }
+        if (this.heartAnimation) {
+            this.heartAnimation.kill();
         }
         if (this.textBoxManager) {
             this.textBoxManager.destroy();
