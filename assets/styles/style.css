@@ -1,6 +1,6 @@
 /**
- * Love Story Animation - Complete CSS Rewrite
- * Clean, modern styling with smooth animations
+ * Love Story Animation - Fixed CSS
+ * Corrected heart positioning and character movement
  */
 
 /* ===== CSS RESET & BASE STYLES ===== */
@@ -83,7 +83,7 @@ body {
     filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15));
 }
 
-/* Character positioning */
+/* Character positioning - Fixed to stay in their positions */
 .mehdi-side {
     left: -200px;
     top: 50%;
@@ -96,14 +96,15 @@ body {
     transform: translateY(-50%) scale(0.8);
 }
 
+/* Front characters - positioned for close relationship scenes */
 .mehdi-front {
-    left: 40%;
+    left: 35%;
     top: 50%;
     transform: translate(-50%, -50%) scale(0.8);
 }
 
 .shelly-front {
-    right: 40%;
+    right: 35%;
     top: 50%;
     transform: translate(50%, -50%) scale(0.8);
 }
@@ -125,24 +126,33 @@ body {
     transform: scale(1.05);
 }
 
-/* ===== HEART STYLES ===== */
+/* ===== HEART STYLES - FIXED POSITIONING ===== */
 .heart {
     position: absolute;
-    top: 20%;
+    top: 25%;
     left: 50%;
-    transform: translateX(-50%) scale(0);
-    width: 80px;
+    transform: translate(-50%, -50%) scale(0);
+    width: 100px;
     height: 80px;
     opacity: 0;
     z-index: 10;
     transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     filter: drop-shadow(0 10px 25px rgba(228, 30, 37, 0.3));
+    /* Ensure heart stays centered */
+    margin: 0;
+    padding: 0;
+}
+
+.heart.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 .heart.animate {
     animation: heartBounce 1.8s ease-in-out infinite;
 }
 
+/* Fixed heart bounce animation */
 @keyframes heartBounce {
     0%, 100% { 
         transform: translate(-50%, -50%) translateY(0) scale(1); 
@@ -411,7 +421,7 @@ body {
     }
     
     .heart {
-        width: 75px;
+        width: 90px;
         height: 75px;
     }
     
@@ -437,7 +447,7 @@ body {
     }
     
     .heart {
-        width: 65px;
+        width: 80px;
         height: 65px;
     }
     
@@ -468,7 +478,7 @@ body {
     }
     
     .heart {
-        width: 55px;
+        width: 70px;
         height: 55px;
     }
     
