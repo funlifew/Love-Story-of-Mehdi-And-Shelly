@@ -234,7 +234,7 @@ class StoryAnimationController {
         tl.to(this.characters.mehdiSide, {
             opacity: 1,
             scale: 1,
-            x: "25vw",
+            x: "45vw",
             duration: 1,
             ease: "power2.out"
         });
@@ -266,7 +266,7 @@ class StoryAnimationController {
         .to(this.characters.shellySide, {
             opacity: 1,
             scale: 1,
-            x: "-25vw",
+            x: "-45vw",
             duration: 1,
             ease: "power2.out"
         }, "-=0.5");
@@ -292,12 +292,12 @@ class StoryAnimationController {
         tl.to(this.characters.mehdiSide, {
             opacity: 1,
             scale: 1,
-            x: "15vw", // Closer to center but still left
+            x: "50vw", // Closer to center but still left
             duration: 0.5,
             ease: "power2.out"
         })
         .to(this.characters.shellySide, {
-            x: "-15vw", // Closer to center but still right
+            x: "-50vw", // Closer to center but still right
             duration: 1,
             ease: "power2.inOut"
         }, "-=0.5");
@@ -318,7 +318,7 @@ class StoryAnimationController {
                 }
             }
         });
-
+        this.characters.heart.style.opacity = "1";
         // Hide side views and show front views for intimate conversation
         tl.to([this.characters.mehdiSide, this.characters.shellySide], {
             opacity: 0,
@@ -330,6 +330,12 @@ class StoryAnimationController {
             scale: 1,
             duration: 1,
             ease: "power2.out"
+        }, "-=0.3")
+        .to([this.characters.heart], {
+            opacity: 1,
+            scale: 1,
+            duration: 1,
+            ease: "back.out(1.7)",
         }, "-=0.3");
     }
 
