@@ -1,19 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Essential Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="How love made between Mehdi And Cute Shelly :)">
-    <meta name="keywords" content="mehdi, shelly, love">
-    <meta name="author" content="Love Story of Mehdi And Sweet Shelly :)">
-    <title>Love Story from Shelly and Mehdi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=3.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="An interactive love story animation between Mehdi and Shelly, featuring smooth scroll-based animations and romantic storytelling.">
+    <meta name="keywords" content="love story, animation, interactive story, romance, Mehdi, Shelly, scroll animation, GSAP">
+    <meta name="author" content="Mehdi Radfar">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourwebsite.com/">
+    <meta property="og:title" content="Love Story of Mehdi and Shelly - Interactive Animation">
+    <meta property="og:description" content="Experience the beautiful love story of Mehdi and Shelly through interactive scroll-based animations.">
+    <meta property="og:image" content="https://yourwebsite.com/preview-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourwebsite.com/">
+    <meta property="twitter:title" content="Love Story of Mehdi and Shelly - Interactive Animation">
+    <meta property="twitter:description" content="Experience the beautiful love story of Mehdi and Shelly through interactive scroll-based animations.">
+    <meta property="twitter:image" content="https://yourwebsite.com/preview-image.jpg">
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/images/favicon-16x16.png">
+    
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#ff6a88">
+    <meta name="msapplication-TileColor" content="#ff6a88">
+    
+    <!-- Performance and Security -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    
+    <!-- Page Title -->
+    <title>Love Story of Mehdi and Shelly - Interactive Romance Animation</title>
+    
+    <!-- Critical CSS -->
     <link rel="stylesheet" href="./assets/styles/style.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Love Story of Mehdi and Shelly",
+        "description": "An interactive love story animation featuring scroll-based storytelling",
+        "author": {
+            "@type": "Person",
+            "name": "Mehdi Radfar"
+        },
+        "dateCreated": "2025",
+        "inLanguage": "en",
+        "isAccessibleForFree": true
+    }
+    </script>
 </head>
 <body>
-    <div class="container">
-        <div class="scene">
-            <!-- Mehdi Side -->
-            <div class="character mehdi-side" id="mehdiSide">
+    <!-- Skip to content for accessibility -->
+    <a href="#main-content" class="sr-only skip-link">Skip to main content</a>
+    
+    <!-- Main Container -->
+    <div class="container" id="main-content" role="main">
+        
+        <!-- Scene Container -->
+        <div class="scene" role="presentation" aria-label="Love story animation scene">
+            
+            <!-- Mehdi Side Character -->
+            <div class="character mehdi-side" id="mehdiSide" role="img" aria-label="Mehdi character side view">
                 <?xml version="1.0" encoding="UTF-8"?>
                 <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17.15 47.48">
                 <defs>
@@ -61,8 +124,8 @@
                 </svg>
             </div>
             
-            <!-- Mehdi Front -->
-            <div class="character mehdi-front" id="mehdiFront">
+            <!-- Mehdi Front Character -->
+            <div class="character mehdi-front" id="mehdiFront" role="img" aria-label="Mehdi character front view">
                 <?xml version="1.0" encoding="UTF-8"?>
                 <svg id="Layer_2" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17.87 46.96">
                 <defs>
@@ -113,8 +176,8 @@
                 </svg>
             </div>
             
-            <!-- Shelly Side -->
-            <div class="character shelly-side" id="shellySide">
+            <!-- Shelly Side Character -->
+            <div class="character shelly-side" id="shellySide" role="img" aria-label="Shelly character side view">
                 <?xml version="1.0" encoding="UTF-8"?>
                 <svg id="Layer_3" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23.87 60.33">
                 <defs>
@@ -160,8 +223,8 @@
                 </svg>
             </div>
             
-            <!-- Shelly Front -->
-            <div class="character shelly-front" id="shellyFront">
+            <!-- Shelly Front Character -->
+            <div class="character shelly-front" id="shellyFront" role="img" aria-label="Shelly character front view">
                 <?xml version="1.0" encoding="UTF-8"?>
                 <svg id="Layer_4" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24.88 59.13">
                 <defs>
@@ -223,7 +286,7 @@
             </div>
 
             <!-- Heart -->
-            <div class="character heart" id="heart">
+            <div class="character heart" id="heart" role="img" aria-label="Heart symbol representing love">
                 <?xml version="1.0" encoding="UTF-8"?>
                 <svg id="Layer_5" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 85.1040178232 60.3163278457">
                 <path d="M45.4968978818,59.6092210953l-21.2132050041-21.213203489c-13.6973609924-13.6973609924,7.5158462524-34.9105644226,21.2132072449-21.2132034302,15.1305923462-15.1305961609,36.3437957764,6.0826072693,21.2132034302,21.2132034302l-21.213205671,21.213203489Z" style="fill: #ee262f; stroke: #231f20; stroke-miterlimit: 10;"/>
@@ -248,17 +311,117 @@
         </div>
     </div>
 
-    <div class="text-box" id="textBox">
-        <div class="text-content" id="textContent">
-            
+    <!-- Text Box Container -->
+    <div class="text-box" id="textBox" role="dialog" aria-hidden="true" aria-live="polite" tabindex="-1">
+        <div class="text-content" id="textContent" aria-label="Story text">
+            <!-- Story text will be dynamically inserted here -->
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js" integrity="sha512-NcZdtrT77bJr4STcmsGAESr06BYGE8woZdSdEgqnpyqac7sugNO+Tr4bGwGF3MsnEkGKhU2KL2xh6Ec+BqsaHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js" integrity="sha512-P2IDYZfqSwjcSjX0BKeNhwRUH8zRPGlgcWl5n6gBLzdi4Y5/0O4zaXrtO4K9TZK6Hn1BenYpKowuCavNandERg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/TextPlugin.min.js" integrity="sha512-8BkFnMa5pqmphA7XoSbkjP2qX7Gqlkel2C+p1g1AH1tW4cBJs2tumC0Zn9eNRBOKbe3dW9OtbYh/vpkGuZNTMw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="./assets/js/textBox.js"></script>
-    <script src="./assets/js/storyText.js"></script>
-    <script src="./assets/js/app.js"></script>
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="sr-only" aria-live="polite">
+        Loading love story animation...
+    </div>
+
+    <!-- Error Message Container -->
+    <div id="errorContainer" class="sr-only" role="alert" aria-live="assertive">
+        <!-- Error messages will be displayed here if needed -->
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    
+    <!-- GSAP Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js" 
+            integrity="sha512-NcZdtrT77bJr4STcmsGAESr06BYGE8woZdSdEgqnpyqac7sugNO+Tr4bGwGF3MsnEkGKhU2KL2xh6Ec+BqsaHA==" 
+            crossorigin="anonymous" 
+            referrerpolicy="no-referrer"
+            async></script>
+    
+    <!-- GSAP ScrollTrigger Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js" 
+            integrity="sha512-P2IDYZfqSwjcSjX0BKeNhwRUH8zRPGlgcWl5n6gBLzdi4Y5/0O4zaXrtO4K9TZK6Hn1BenYpKowuCavNandERg==" 
+            crossorigin="anonymous" 
+            referrerpolicy="no-referrer"
+            async></script>
+    
+    <!-- GSAP TextPlugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/TextPlugin.min.js" 
+            integrity="sha512-8BkFnMa5pqmphA7XoSbkjP2qX7Gqlkel2C+p1g1AH1tW4cBJs2tumC0Zn9eNRBOKbe3dW9OtbYh/vpkGuZNTMw==" 
+            crossorigin="anonymous" 
+            referrerpolicy="no-referrer"
+            async></script>
+    
+    <!-- Application Scripts -->
+    <script src="./assets/js/textBox.js" defer></script>
+    <script src="./assets/js/storyText.js" defer></script>
+    <script src="./assets/js/app.js" defer></script>
+    
+    <!-- Test Scripts (only load in development) -->
+    <script>
+        // Load tests only in development environment
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const testScript = document.createElement('script');
+            testScript.src = './tests/test-story-animation.js';
+            testScript.defer = true;
+            document.head.appendChild(testScript);
+        }
+    </script>
+
+    <!-- Error Handling -->
+    <script>
+        // Global error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            const errorContainer = document.getElementById('errorContainer');
+            if (errorContainer) {
+                errorContainer.textContent = 'An error occurred while loading the story. Please refresh the page.';
+                errorContainer.classList.remove('sr-only');
+            }
+        });
+
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
+
+        // Hide loading indicator when page is loaded
+        window.addEventListener('load', function() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.textContent = 'Love story animation loaded successfully.';
+                setTimeout(() => {
+                    loadingIndicator.textContent = '';
+                }, 2000);
+            }
+        });
+    </script>
+
+    <!-- Service Worker Registration (for PWA capabilities) -->
+    <script>
+        // Register service worker for offline capabilities
+        if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('✅ ServiceWorker registration successful');
+                    })
+                    .catch(function(err) {
+                        console.log('❌ ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Analytics (replace with your analytics code) -->
+    <!-- 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+    -->
+
 </body>
 </html>
