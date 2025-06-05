@@ -1,7 +1,3 @@
-/**
- * Main Story Animation Controller
- * Manages GSAP animations, scroll triggers, and story progression
- */
 class StoryAnimationController {
     constructor() {
         this.textBoxManager = null;
@@ -9,19 +5,14 @@ class StoryAnimationController {
         this.isAnimating = false;
         this.timeline = null;
         this.currentTextKey = null;
-        this.sceneTextStates = new Map(); // Track text states per scene
+        this.lastScrollPosition = 0;
+        this.scrollDirection = 1; // 1 for down, -1 for up
         
         this.init();
     }
-
-    /**
-     * Initialize the animation controller
-     */
     init() {
-        // Register GSAP plugins
         gsap.registerPlugin(ScrollTrigger);
         
-        // Wait for DOM and dependencies to load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.onDOMReady());
         } else {
@@ -29,19 +20,15 @@ class StoryAnimationController {
         }
     }
 
-    /**
-     * Handle DOM ready event
-     */
     onDOMReady() {
         this.initializeTextBox();
         this.initializeCharacters();
+        this.setupScrollTracking();
         this.createScrollTriggers();
+        this.restoreScrollPosition();
         this.startStoryAnimation();
     }
 
-    /**
-     * Initialize text box manager
-     */
     initializeTextBox() {
         if (typeof TextBoxManager !== 'undefined') {
             this.textBoxManager = new TextBoxManager();
@@ -52,9 +39,6 @@ class StoryAnimationController {
         }
     }
 
-    /**
-     * Initialize character elements and set starting positions
-     */
     initializeCharacters() {
         // Get character elements
         this.characters = {
@@ -65,7 +49,7 @@ class StoryAnimationController {
             heart: document.getElementById('heart')
         };
 
-        // Set initial states
+        // Set initial states - Fixed positioning
         gsap.set([this.characters.mehdiSide, this.characters.shellySide], {
             opacity: 0,
             scale: 0.8
@@ -78,10 +62,70 @@ class StoryAnimationController {
 
         gsap.set(this.characters.heart, {
             opacity: 0,
-            scale: 0
+            scale: 0,
+            x: 0,
+            y: 0
         });
 
-        console.log('✅ Characters initialized');
+        console.log('✅ Characters initialized with fixed positioning');
+    }
+
+    /**
+     * Setup scroll direction tracking
+     */
+    setupScrollTracking() {
+        let ticking = false;
+        
+        const updateScrollDirection = () => {
+            const currentScrollY = window.scrollY;
+            this.scrollDirection = currentScrollY > this.lastScrollPosition ? 1 : -1;
+            this.lastScrollPosition = currentScrollY;
+            ticking = false;
+        };
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(updateScrollDirection);
+                ticking = true;
+            }
+        });
+    }
+
+    /**
+     * Restore scroll position and display appropriate text on page refresh
+     */
+    restoreScrollPosition() {
+        // Wait a frame for everything to initialize
+        requestAnimationFrame(() => {
+            const currentScroll = window.scrollY;
+            const totalHeight = document.body.scrollHeight - window.innerHeight;
+            const scrollProgress = currentScroll / totalHeight;
+            
+            // Determine current scene and progress
+            let sceneNumber, sceneProgress;
+            
+            if (scrollProgress <= 0.2) {
+                sceneNumber = 1;
+                sceneProgress = scrollProgress / 0.2;
+            } else if (scrollProgress <= 0.4) {
+                sceneNumber = 2;
+                sceneProgress = (scrollProgress - 0.2) / 0.2;
+            } else if (scrollProgress <= 0.6) {
+                sceneNumber = 3;
+                sceneProgress = (scrollProgress - 0.4) / 0.2;
+            } else if (scrollProgress <= 0.8) {
+                sceneNumber = 4;
+                sceneProgress = (scrollProgress - 0.6) / 0.2;
+            } else {
+                sceneNumber = 5;
+                sceneProgress = (scrollProgress - 0.8) / 0.2;
+            }
+            
+            // Display appropriate text instantly
+            this.updateTextForProgress(sceneNumber, sceneProgress, true);
+            
+            console.log(`📍 Restored to scene ${sceneNumber}, progress: ${sceneProgress.toFixed(2)}`);
+        });
     }
 
     /**
@@ -128,19 +172,19 @@ class StoryAnimationController {
      * Update text based on current scroll position
      * @param {number} sceneNumber - Current scene
      * @param {number} progress - Progress within scene
-     * @param {boolean} isScrollingUp - Whether user is scrolling up
+     * @param {boolean} isInstant - Whether to show text instantly
      */
-    updateTextForProgress(sceneNumber, progress, isScrollingUp = false) {
+    updateTextForProgress(sceneNumber, progress, isInstant = false) {
         const textKey = this.getTextForProgress(sceneNumber, progress);
         
         if (textKey && textKey !== this.currentTextKey) {
             this.currentTextKey = textKey;
             
-            if (isScrollingUp) {
-                // For scrolling up, show text instantly
+            if (isInstant || this.scrollDirection === -1) {
+                // For scrolling up or page restoration, show text instantly
                 this.playStoryTextInstant(textKey);
             } else {
-                // For scrolling down, use normal typing animation
+                // For scrolling down, use normal animation
                 this.playStoryText(textKey);
             }
         } else if (!textKey && this.currentTextKey) {
@@ -154,22 +198,20 @@ class StoryAnimationController {
      * Create scroll-triggered animation sequences
      */
     createScrollTriggers() {
-        let lastScrollY = 0;
-        
         // Scene 1: Mehdi enters (0-20% scroll)
-        this.createScene1(lastScrollY);
+        this.createScene1();
         
         // Scene 2: Mehdi exits, Shelly enters (20-40% scroll)
-        this.createScene2(lastScrollY);
+        this.createScene2();
         
-        // Scene 3: Both meet in center (40-60% scroll)
-        this.createScene3(lastScrollY);
+        // Scene 3: Both meet in center - using side views (40-60% scroll)
+        this.createScene3();
         
-        // Scene 4: Love develops (60-80% scroll)
-        this.createScene4(lastScrollY);
+        // Scene 4: Love develops - switch to front views (60-80% scroll)
+        this.createScene4();
         
         // Scene 5: Heart appears (80-100% scroll)
-        this.createScene5(lastScrollY);
+        this.createScene5();
     }
 
     /**
@@ -183,23 +225,18 @@ class StoryAnimationController {
                 end: "20% bottom",
                 scrub: 1,
                 onUpdate: (self) => {
-                    const isScrollingUp = self.direction === -1;
-                    this.updateTextForProgress(1, self.progress, isScrollingUp);
+                    this.updateTextForProgress(1, self.progress);
                 }
             }
         });
 
+        // Mehdi enters and moves to center-left
         tl.to(this.characters.mehdiSide, {
             opacity: 1,
             scale: 1,
-            x: 0,
+            x: "25vw",
             duration: 1,
             ease: "power2.out"
-        })
-        .to(this.characters.mehdiSide, {
-            x: "20vw",
-            duration: 1,
-            ease: "power1.inOut"
         });
     }
 
@@ -214,12 +251,12 @@ class StoryAnimationController {
                 end: "40% bottom",
                 scrub: 1,
                 onUpdate: (self) => {
-                    const isScrollingUp = self.direction === -1;
-                    this.updateTextForProgress(2, self.progress, isScrollingUp);
+                    this.updateTextForProgress(2, self.progress);
                 }
             }
         });
 
+        // Mehdi exits left, Shelly enters and moves to center-right
         tl.to(this.characters.mehdiSide, {
             x: "-100vw",
             opacity: 0,
@@ -229,19 +266,14 @@ class StoryAnimationController {
         .to(this.characters.shellySide, {
             opacity: 1,
             scale: 1,
-            x: 0,
+            x: "-25vw",
             duration: 1,
             ease: "power2.out"
-        }, "-=0.5")
-        .to(this.characters.shellySide, {
-            x: "-20vw",
-            duration: 1,
-            ease: "power1.inOut"
-        });
+        }, "-=0.5");
     }
 
     /**
-     * Scene 3: Both characters meet in center
+     * Scene 3: Both characters meet in center - using side views
      */
     createScene3() {
         const tl = gsap.timeline({
@@ -251,13 +283,43 @@ class StoryAnimationController {
                 end: "60% bottom",
                 scrub: 1,
                 onUpdate: (self) => {
-                    const isScrollingUp = self.direction === -1;
-                    this.updateTextForProgress(3, self.progress, isScrollingUp);
+                    this.updateTextForProgress(3, self.progress);
                 }
             }
         });
 
-        // Hide side views and show front views
+        // Bring both side characters closer to center but don't overlap
+        tl.to(this.characters.mehdiSide, {
+            opacity: 1,
+            scale: 1,
+            x: "15vw", // Closer to center but still left
+            duration: 0.5,
+            ease: "power2.out"
+        })
+        .to(this.characters.shellySide, {
+            x: "-15vw", // Closer to center but still right
+            duration: 1,
+            ease: "power2.inOut"
+        }, "-=0.5");
+    }
+
+    /**
+     * Scene 4: Love develops - switch to front views
+     */
+    createScene4() {
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".container",
+                start: "60% top",
+                end: "80% bottom",
+                scrub: 1,
+                onUpdate: (self) => {
+                    this.updateTextForProgress(4, self.progress);
+                }
+            }
+        });
+
+        // Hide side views and show front views for intimate conversation
         tl.to([this.characters.mehdiSide, this.characters.shellySide], {
             opacity: 0,
             scale: 0.8,
@@ -268,49 +330,7 @@ class StoryAnimationController {
             scale: 1,
             duration: 1,
             ease: "power2.out"
-        }, "-=0.3")
-        .to(this.characters.mehdiFront, {
-            x: "10vw",
-            duration: 1,
-            ease: "power1.inOut"
-        }, "-=0.5")
-        .to(this.characters.shellyFront, {
-            x: "-10vw",
-            duration: 1,
-            ease: "power1.inOut"
-        }, "-=1");
-    }
-
-    /**
-     * Scene 4: Love develops
-     */
-    createScene4() {
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: ".container",
-                start: "60% top",
-                end: "80% bottom",
-                scrub: 1,
-                onUpdate: (self) => {
-                    const isScrollingUp = self.direction === -1;
-                    this.updateTextForProgress(4, self.progress, isScrollingUp);
-                }
-            }
-        });
-
-        // Bring characters closer together
-        tl.to(this.characters.mehdiFront, {
-            x: "5vw",
-            scale: 1.1,
-            duration: 1,
-            ease: "power2.inOut"
-        })
-        .to(this.characters.shellyFront, {
-            x: "-5vw",
-            scale: 1.1,
-            duration: 1,
-            ease: "power2.inOut"
-        }, "-=1");
+        }, "-=0.3");
     }
 
     /**
@@ -324,31 +344,64 @@ class StoryAnimationController {
                 end: "100% bottom",
                 scrub: 1,
                 onUpdate: (self) => {
-                    const isScrollingUp = self.direction === -1;
-                    this.updateTextForProgress(5, self.progress, isScrollingUp);
+                    this.updateTextForProgress(5, self.progress);
                     
                     // Handle heart animation
-                    if (self.progress > 0.3 && !this.characters.heart.classList.contains('animate')) {
-                        this.animateHeart();
-                    } else if (self.progress <= 0.3 && this.characters.heart.classList.contains('animate')) {
-                        this.stopHeartAnimation();
+                    if (self.progress > 0.3) {
+                        this.showHeart();
+                        if (self.progress > 0.5) {
+                            this.animateHeart();
+                        }
+                    } else {
+                        this.hideHeart();
                     }
                 }
             }
         });
 
-        // Show heart and animate
-        tl.to(this.characters.heart, {
+        // Scale up characters slightly for the final romantic scene
+        tl.to([this.characters.mehdiFront, this.characters.shellyFront], {
+            scale: 1.1,
+            duration: 0.5,
+            ease: "power2.inOut"
+        })
+        .to(this.characters.heart, {
             opacity: 1,
             scale: 1,
             duration: 1,
             ease: "back.out(1.7)"
-        })
-        .to([this.characters.mehdiFront, this.characters.shellyFront], {
-            scale: 1.2,
-            duration: 0.5,
-            ease: "power2.inOut"
-        }, "-=0.5");
+        }, "-=0.3");
+    }
+
+    /**
+     * Show heart with proper positioning
+     */
+    showHeart() {
+        if (this.characters.heart && !this.characters.heart.classList.contains('visible')) {
+            this.characters.heart.classList.add('visible');
+            gsap.to(this.characters.heart, {
+                opacity: 1,
+                scale: 1,
+                duration: 0.8,
+                ease: "back.out(1.7)"
+            });
+        }
+    }
+
+    /**
+     * Hide heart
+     */
+    hideHeart() {
+        if (this.characters.heart && this.characters.heart.classList.contains('visible')) {
+            this.characters.heart.classList.remove('visible', 'animate');
+            gsap.to(this.characters.heart, {
+                opacity: 0,
+                scale: 0,
+                duration: 0.5,
+                ease: "power2.in"
+            });
+            this.stopHeartAnimation();
+        }
     }
 
     /**
@@ -357,15 +410,6 @@ class StoryAnimationController {
     animateHeart() {
         if (this.characters.heart && !this.characters.heart.classList.contains('animate')) {
             this.characters.heart.classList.add('animate');
-            
-            // Add continuous heartbeat animation
-            this.heartAnimation = gsap.to(this.characters.heart, {
-                scale: 1.1,
-                duration: 0.6,
-                yoyo: true,
-                repeat: -1,
-                ease: "power2.inOut"
-            });
         }
     }
 
@@ -409,7 +453,6 @@ class StoryAnimationController {
             console.error(`Error displaying text ${textKey}:`, error);
         }
     }
-
 
     /**
      * Play story text instantly (for scroll restoration)
@@ -513,7 +556,7 @@ class StoryAnimationController {
         // Reset character classes
         Object.values(this.characters).forEach(char => {
             if (char) {
-                char.classList.remove('text-shown', 'dialogue-shown', 'entered', 'intro-shown', 'animate');
+                char.classList.remove('visible', 'animate');
             }
         });
 
@@ -549,9 +592,6 @@ const storyController = new StoryAnimationController();
 // Export for global access
 window.storyController = storyController;
 
-/**
- * Development helper functions
- */
 window.devHelpers = {
     skipToScene: (sceneNumber) => {
         const targetScroll = (sceneNumber * 0.2) * document.body.scrollHeight;
@@ -566,9 +606,20 @@ window.devHelpers = {
         if (window.storyTextBox && window.STORY_TEXTS) {
             storyController.playStoryText('mehdiEnters');
         }
+    },
+    
+    getCurrentScene: () => {
+        const currentScroll = window.scrollY;
+        const totalHeight = document.body.scrollHeight - window.innerHeight;
+        const scrollProgress = currentScroll / totalHeight;
+        
+        if (scrollProgress <= 0.2) return 1;
+        if (scrollProgress <= 0.4) return 2;
+        if (scrollProgress <= 0.6) return 3;
+        if (scrollProgress <= 0.8) return 4;
+        return 5;
     }
 };
 
-console.log('🎭 Story Animation System Loaded');
 console.log('Use arrow keys to scroll, spacebar to skip scenes, R to restart');
-console.log('Dev helpers available: window.devHelpers.skipToScene(1-5), window.devHelpers.resetStory(), window.devHelpers.testTextBox()');
+console.log('Dev helpers: devHelpers.skipToScene(1-5), devHelpers.resetStory(), devHelpers.testTextBox(), devHelpers.getCurrentScene()');
