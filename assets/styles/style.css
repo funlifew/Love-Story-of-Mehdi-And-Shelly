@@ -4,6 +4,11 @@
  */
 
 /* ===== CSS RESET & BASE STYLES ===== */
+@font-face {
+    font-family: "Poppins";
+    src: url('../fonts/Poppins-Regular.ttf')
+}
+
 *,
 *::before,
 *::after {
@@ -13,7 +18,11 @@
 }
 
 html {
-    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* [CHANGED] Smooth scroll is now controlled by JS for better device-specific handling */
+    scroll-behavior: auto; 
     font-size: 16px;
     line-height: 1.5;
 }
@@ -21,39 +30,29 @@ html {
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Georgia', 'Times New Roman', serif;
+    font-family: 'Poppins', 'Georgia', serif;
     overflow-x: hidden;
     direction: ltr;
     background: linear-gradient(-45deg, #ff6a88, #ffb199, #ff9a9e, #fbc2eb, #a18cd1);
     background-size: 400% 400%;
     animation: loveGradient 12s ease-in-out infinite;
+    -webkit-overflow-scrolling: touch; /* For momentum scrolling on iOS */
     min-height: 100vh;
 }
 
 /* ===== BACKGROUND ANIMATION ===== */
 @keyframes loveGradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    25% {
-        background-position: 100% 0%;
-    }
-    50% {
-        background-position: 100% 100%;
-    }
-    75% {
-        background-position: 0% 100%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
+    0%   { background-position: 0% 50%; }
+    25%  { background-position: 100% 0%; }
+    50%  { background-position: 100% 100%; }
+    75%  { background-position: 0% 100%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* ===== MAIN CONTAINER ===== */
 .container {
-    height: 800vh;
+    min-height: 800vh; /* This gives enough scroll space */
     position: relative;
-    overflow: hidden;
     width: 100%;
 }
 
@@ -64,50 +63,57 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     z-index: 1;
-    pointer-events: none;
+    pointer-events: none; /* Allows clicks to go "through" the scene */
 }
 
 /* ===== CHARACTER STYLES ===== */
 .character {
     position: absolute;
-    width: 120px;
-    height: 120px;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 25vw; /* Use viewport width for better responsiveness */
+    height: auto;
+    max-width: 150px;
+    min-width: 90px; /* Adjusted for better visibility on small screens */
     will-change: transform, opacity;
-    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
+    transition: filter 0.3s ease;
+}
+.character:hover {
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2));
 }
 
 /* Character positioning - Fixed to stay in their positions */
 .mehdi-side {
-    left: -200px;
-    top: 50%;
-    transform: translateY(-50%) scale(0.8);
+    left: -30vw; /* Start off-screen to the left */
+    top: 45%;    /* Vertically centered */
+    transform: translateY(-50%);
+    opacity: 0;
 }
 
 .shelly-side {
-    right: -200px;
-    top: 50%;
-    transform: translateY(-50%) scale(0.8);
+    right: -30vw; /* Start off-screen to the right */
+    top: 45%;     /* Vertically centered */
+    transform: translateY(-50%);
+    opacity: 0;
 }
 
 /* Front characters - positioned for close relationship scenes */
 .mehdi-front {
-    left: 35%;
+    left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
+    /* Positioned to be on the left side of the center */
+    transform: translate(-90%, -50%);
+    opacity: 0;
 }
 
 .shelly-front {
-    right: 35%;
+    left: 50%; /* Changed from 'right' for easier GSAP control */
     top: 50%;
-    transform: translate(50%, -50%) scale(0.8);
+    /* Positioned to be on the right side of the center */
+    transform: translate(-10%, -50%);
+    opacity: 0;
 }
+
 
 /* Character visibility states */
 .character.visible {
@@ -132,6 +138,7 @@ body {
     top: 25%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
+    will-change: transform, opacity, scale;
     width: 100px;
     height: 80px;
     opacity: 0;
@@ -267,7 +274,7 @@ body {
 
 /* ===== TEXT CONTENT STYLES ===== */
 .text-content {
-    font-family: 'Georgia', 'Times New Roman', serif;
+    font-family: 'Poppins', 'Times New Roman', serif;
     font-size: 1.25rem;
     line-height: 1.7;
     color: #2c3e50;
@@ -670,5 +677,49 @@ body {
     .character,
     .heart {
         display: none;
+    }
+}
+
+/* iPhone 7 and similar devices */
+@media (max-width: 414px) and (max-height: 736px) {
+    .character {
+        width: 22vw;
+        min-width: 85px;
+        max-width: 110px;
+    }
+    
+    .heart {
+        width: 75px;
+        height: 60px;
+        top: 30%;  /* Adjusted for iPhone 7 */
+    }
+    
+    .text-box {
+        bottom: 25px;
+        width: 88%;
+        max-width: 350px;
+        padding: 18px 22px;
+    }
+    
+    .text-content {
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;  /* Smaller base font for mobile */
+    }
+    
+    body {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;  /* iOS fix */
+    }
+    
+    .container {
+        min-height: 800vh;
+        width: 100%;
+        overflow-x: hidden;
     }
 }
