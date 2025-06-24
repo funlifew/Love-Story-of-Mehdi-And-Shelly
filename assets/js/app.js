@@ -1,4 +1,9 @@
-class StoryAnimationController {
+/**
+ * Responsive Story Animation Controller
+ * Handles scroll-based story animations with full mobile responsiveness
+ * Optimized for iPhone 7 and all mobile devices
+ */
+class ResponsiveStoryAnimationController {
     constructor() {
         this.textBoxManager = null;
         this.currentScene = 0;
@@ -8,10 +13,64 @@ class StoryAnimationController {
         this.lastScrollPosition = 0;
         this.scrollDirection = 1; // 1 for down, -1 for up
         
+        // Device and viewport tracking
+        this.isMobile = false;
+        this.isTablet = false;
+        this.isLandscape = false;
+        this.viewportWidth = window.innerWidth;
+        this.viewportHeight = window.innerHeight;
+        
+        // Media queries for responsive breakpoints
+        this.mediaQueries = {
+            mobile: window.matchMedia('(max-width: 767px)'),
+            tablet: window.matchMedia('(min-width: 768px) and (max-width: 1023px)'),
+            desktop: window.matchMedia('(min-width: 1024px)'),
+            landscape: window.matchMedia('(orientation: landscape)'),
+            portrait: window.matchMedia('(orientation: portrait)'),
+            smallMobile: window.matchMedia('(max-width: 480px)'), // iPhone 7 and smaller
+            retina: window.matchMedia('(-webkit-min-device-pixel-ratio: 2)')
+        };
+        
+        // Animation configurations for different devices
+        this.animationConfig = {
+            mobile: {
+                characterScale: 0.9,
+                moveDistance: '30vw',      // How far Mehdi moves in Scene 1
+                meetDistance: '15vw',      // How far characters move to meet in Scene 3
+                heartScale: 0.9,
+                animationDuration: 1.2,
+                scrollSensitivity: 0.8
+            },
+            tablet: {
+                characterScale: 0.9,
+                moveDistance: '35vw',
+                meetDistance: '35vw',
+                heartScale: 0.9,
+                animationDuration: 1.0,
+                scrollSensitivity: 1.0
+            },
+            desktop: {
+                characterScale: 1.0,
+                moveDistance: '40vw',
+                meetDistance: '50vw',
+                heartScale: 1.0,
+                animationDuration: 1.0,
+                scrollSensitivity: 1.0
+            }
+        };
+        
         this.init();
     }
+
+    /**
+     * Initialize the controller with responsive setup
+     */
     init() {
         gsap.registerPlugin(ScrollTrigger);
+        
+        // Setup responsive listeners first
+        this.setupResponsiveListeners();
+        this.updateDeviceState();
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.onDOMReady());
@@ -20,25 +79,153 @@ class StoryAnimationController {
         }
     }
 
+    /**
+     * Setup media query listeners for responsive behavior
+     */
+    setupResponsiveListeners() {
+        // Listen for device orientation changes
+        this.mediaQueries.landscape.addListener((e) => {
+            this.isLandscape = e.matches;
+            this.handleOrientationChange();
+        });
+
+        this.mediaQueries.portrait.addListener((e) => {
+            this.handleOrientationChange();
+        });
+
+        // Listen for viewport size changes
+        this.mediaQueries.mobile.addListener((e) => {
+            this.isMobile = e.matches;
+            this.handleDeviceChange();
+        });
+
+        this.mediaQueries.tablet.addListener((e) => {
+            this.isTablet = e.matches;
+            this.handleDeviceChange();
+        });
+
+        // Handle window resize with debouncing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                this.handleResize();
+            }, 150);
+        });
+
+        // Handle iOS viewport changes (address bar hide/show)
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.handleOrientationChange();
+            }, 500);
+        });
+    }
+
+    /**
+     * Update device state based on current viewport
+     */
+    updateDeviceState() {
+        this.isMobile = this.mediaQueries.mobile.matches;
+        this.isTablet = this.mediaQueries.tablet.matches;
+        this.isLandscape = this.mediaQueries.landscape.matches;
+        this.viewportWidth = window.innerWidth;
+        this.viewportHeight = window.innerHeight;
+        
+        console.log(`📱 Device state: Mobile: ${this.isMobile}, Tablet: ${this.isTablet}, Landscape: ${this.isLandscape}`);
+    }
+
+    /**
+     * Handle device type changes
+     */
+    handleDeviceChange() {
+        this.updateDeviceState();
+        this.refreshAnimations();
+        this.updateCharacterPositions();
+    }
+
+    /**
+     * Handle orientation changes
+     */
+    handleOrientationChange() {
+        this.updateDeviceState();
+        
+        // Small delay to let the browser finish orientation change
+        setTimeout(() => {
+            ScrollTrigger.refresh();
+            this.updateCharacterPositions();
+            this.restoreScrollPosition();
+        }, 300);
+    }
+
+    /**
+     * Handle window resize
+     */
+    handleResize() {
+        this.updateDeviceState();
+        ScrollTrigger.refresh();
+        this.updateCharacterPositions();
+    }
+
+    /**
+     * Get current animation configuration based on device
+     */
+    getCurrentConfig() {
+        if (this.isMobile) return this.animationConfig.mobile;
+        if (this.isTablet) return this.animationConfig.tablet;
+        return this.animationConfig.desktop;
+    }
+
+    /**
+     * DOM ready handler with responsive initialization
+     */
     onDOMReady() {
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        
+        window.scroll(0, 0);
         this.initializeTextBox();
         this.initializeCharacters();
         this.setupScrollTracking();
-        this.createScrollTriggers();
-        this.restoreScrollPosition();
+        this.createResponsiveScrollTriggers();
+        
+        // Longer delay for mobile devices
+        const refreshDelay = this.isMobile ? 800 : 500;
+        setTimeout(() => {
+            ScrollTrigger.refresh();
+        }, refreshDelay);
+        
+        setTimeout(() => {
+            this.restoreScrollPosition();
+        }, 200);
+        
         this.startStoryAnimation();
     }
 
+    /**
+     * Initialize text box with responsive settings
+     */
     initializeTextBox() {
         if (typeof TextBoxManager !== 'undefined') {
-            this.textBoxManager = new TextBoxManager();
+            // Pass responsive settings to text box manager
+            const textBoxConfig = {
+                isMobile: this.isMobile,
+                isTablet: this.isTablet,
+                fontSize: this.isMobile ? '14px' : '16px',
+                padding: this.isMobile ? '15px' : '20px'
+            };
+            
+            this.textBoxManager = new TextBoxManager(textBoxConfig);
             window.storyTextBox = this.textBoxManager;
-            console.log('✅ TextBox Manager initialized successfully');
+            console.log('✅ Responsive TextBox Manager initialized');
         } else {
             console.error('❌ TextBoxManager not found. Make sure textBox.js is loaded.');
         }
     }
 
+    /**
+     * Initialize characters with responsive positioning
+     */
     initializeCharacters() {
         // Get character elements
         this.characters = {
@@ -49,57 +236,120 @@ class StoryAnimationController {
             heart: document.getElementById('heart')
         };
 
-        // Set initial states - Fixed positioning
-        gsap.set([this.characters.mehdiSide, this.characters.shellySide], {
-            opacity: 0,
-            scale: 0.8
-        });
-
-        gsap.set([this.characters.mehdiFront, this.characters.shellyFront], {
-            opacity: 0,
-            scale: 0.8
-        });
-
-        gsap.set(this.characters.heart, {
-            opacity: 0,
-            scale: 0,
-            x: 0,
-            y: 0
-        });
-
-        console.log('✅ Characters initialized with fixed positioning');
+        // Apply responsive initial states
+        this.setResponsiveCharacterStates();
+        
+        console.log('✅ Characters initialized with responsive positioning');
     }
 
     /**
-     * Setup scroll direction tracking
+     * Set responsive character states based on device
+     */
+    setResponsiveCharacterStates() {
+        const config = this.getCurrentConfig();
+        
+        // Set initial states for side characters
+        gsap.set([this.characters.mehdiSide, this.characters.shellySide], {
+            opacity: 0,
+            scale: config.characterScale * 0.8,
+            transformOrigin: "center center"
+        });
+
+        // Set initial states for front characters
+        gsap.set([this.characters.mehdiFront, this.characters.shellyFront], {
+            opacity: 0,
+            scale: config.characterScale * 0.8,
+            transformOrigin: "center center"
+        });
+
+        // Heart positioning - more responsive
+        const heartConfig = this.getResponsiveHeartPosition();
+        gsap.set(this.characters.heart, {
+            opacity: 0,
+            scale: 0,
+            xPercent: -50,
+            yPercent: -50,
+            top: heartConfig.top,
+            left: heartConfig.left,
+            transformOrigin: "center center"
+        });
+    }
+
+    /**
+     * Get responsive heart position based on device and orientation
+     */
+    getResponsiveHeartPosition() {
+        if (this.isMobile) {
+            return {
+                top: this.isLandscape ? "30%" : "25%",
+                left: "50%"
+            };
+        } else if (this.isTablet) {
+            return {
+                top: "27%",
+                left: "50%"
+            };
+        } else {
+            return {
+                top: "25%",
+                left: "50%"
+            };
+        }
+    }
+
+    /**
+     * Update character positions for current viewport
+     */
+    updateCharacterPositions() {
+        if (!this.characters.mehdiSide) return;
+        
+        this.setResponsiveCharacterStates();
+        
+        // Update heart position
+        const heartConfig = this.getResponsiveHeartPosition();
+        gsap.set(this.characters.heart, {
+            top: heartConfig.top,
+            left: heartConfig.left
+        });
+    }
+
+    /**
+     * Setup scroll direction tracking with mobile optimization
      */
     setupScrollTracking() {
         let ticking = false;
+        const scrollSensitivity = this.getCurrentConfig().scrollSensitivity;
         
         const updateScrollDirection = () => {
             const currentScrollY = window.scrollY;
-            this.scrollDirection = currentScrollY > this.lastScrollPosition ? 1 : -1;
-            this.lastScrollPosition = currentScrollY;
+            const scrollDiff = Math.abs(currentScrollY - this.lastScrollPosition);
+            
+            // Adjust sensitivity for mobile
+            if (scrollDiff > (this.isMobile ? 5 : 10)) {
+                this.scrollDirection = currentScrollY > this.lastScrollPosition ? 1 : -1;
+                this.lastScrollPosition = currentScrollY;
+            }
+            
             ticking = false;
         };
 
+        // Use passive listeners for better mobile performance
         window.addEventListener('scroll', () => {
             if (!ticking) {
                 requestAnimationFrame(updateScrollDirection);
                 ticking = true;
             }
-        });
+        }, { passive: true });
     }
 
     /**
-     * Restore scroll position and display appropriate text on page refresh
+     * Restore scroll position with responsive text display
      */
     restoreScrollPosition() {
-        // Wait a frame for everything to initialize
         requestAnimationFrame(() => {
             const currentScroll = window.scrollY;
             const totalHeight = document.body.scrollHeight - window.innerHeight;
-            const scrollProgress = currentScroll / totalHeight;
+            const scrollProgress = Math.max(0, Math.min(1, currentScroll / totalHeight));
             
             // Determine current scene and progress
             let sceneNumber, sceneProgress;
@@ -129,10 +379,7 @@ class StoryAnimationController {
     }
 
     /**
-     * Get the appropriate text for a given scroll progress
-     * @param {number} sceneNumber - Scene number (1-5)
-     * @param {number} progress - Progress within scene (0-1)
-     * @returns {string|null} - Text key to display
+     * Get the appropriate text key for given progress (unchanged)
      */
     getTextForProgress(sceneNumber, progress) {
         switch(sceneNumber) {
@@ -169,10 +416,7 @@ class StoryAnimationController {
     }
 
     /**
-     * Update text based on current scroll position
-     * @param {number} sceneNumber - Current scene
-     * @param {number} progress - Progress within scene
-     * @param {boolean} isInstant - Whether to show text instantly
+     * Update text for progress with responsive handling
      */
     updateTextForProgress(sceneNumber, progress, isInstant = false) {
         const textKey = this.getTextForProgress(sceneNumber, progress);
@@ -181,222 +425,230 @@ class StoryAnimationController {
             this.currentTextKey = textKey;
             
             if (isInstant || this.scrollDirection === -1) {
-                // For scrolling up or page restoration, show text instantly
                 this.playStoryTextInstant(textKey);
             } else {
-                // For scrolling down, use normal animation
                 this.playStoryText(textKey);
             }
         } else if (!textKey && this.currentTextKey) {
-            // Clear text if no text should be shown at this position
-            this.textBoxManager.clearText();
+            this.textBoxManager?.clearText();
             this.currentTextKey = null;
         }
     }
 
     /**
-     * Create scroll-triggered animation sequences
+     * Create responsive scroll triggers
      */
-    createScrollTriggers() {
-        // Scene 1: Mehdi enters (0-20% scroll)
-        this.createScene1();
+    createResponsiveScrollTriggers() {
+        // Kill existing triggers
+        ScrollTrigger.killAll();
         
-        // Scene 2: Mehdi exits, Shelly enters (20-40% scroll)
-        this.createScene2();
-        
-        // Scene 3: Both meet in center - using side views (40-60% scroll)
-        this.createScene3();
-        
-        // Scene 4: Love develops - switch to front views (60-80% scroll)
-        this.createScene4();
-        
-        // Scene 5: Heart appears (80-100% scroll)
-        this.createScene5();
+        // Create scenes with responsive settings
+        this.createResponsiveScene1();
+        this.createResponsiveScene2();
+        this.createResponsiveScene3();
+        this.createResponsiveScene4();
+        this.createResponsiveScene5();
     }
 
     /**
-     * Scene 1: Mehdi enters from left
+     * Refresh all animations with new responsive settings
      */
-    createScene1() {
+    refreshAnimations() {
+        this.createResponsiveScrollTriggers();
+        ScrollTrigger.refresh();
+    }
+
+    /**
+     * Scene 1: Mehdi enters (responsive)
+     */
+    createResponsiveScene1() {
+        const config = this.getCurrentConfig();
+        
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: ".container",
                 start: "top top",
                 end: "20% bottom",
-                scrub: 1,
+                scrub: config.scrollSensitivity,
                 onUpdate: (self) => {
                     this.updateTextForProgress(1, self.progress);
                 }
             }
         });
 
-        // Mehdi enters and moves to center-left
+        // Mehdi enters from the left and stops on the left side of the screen
         tl.to(this.characters.mehdiSide, {
             opacity: 1,
-            scale: 1,
-            x: "45vw",
-            duration: 1,
+            scale: config.characterScale,
+            x: config.moveDistance, // Moves from -30vw to 30vw, stopping at left: 0
+            duration: config.animationDuration,
             ease: "power2.out"
         });
     }
 
     /**
-     * Scene 2: Mehdi exits, Shelly enters
+     * Scene 2: Mehdi exits, Shelly enters (responsive)
      */
-    createScene2() {
+    createResponsiveScene2() {
+        const config = this.getCurrentConfig();
+
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: ".container",
                 start: "20% top",
                 end: "40% bottom",
-                scrub: 1,
+                scrub: config.scrollSensitivity,
                 onUpdate: (self) => {
                     this.updateTextForProgress(2, self.progress);
                 }
             }
         });
 
-        // Mehdi exits left, Shelly enters and moves to center-right
+        // Mehdi exits to the left
         tl.to(this.characters.mehdiSide, {
-            x: "-100vw",
+            x: '-=40vw', // Move further left off-screen
             opacity: 0,
-            duration: 1,
+            duration: config.animationDuration * 0.8,
             ease: "power2.in"
         })
+
+        // Shelly enters from the right
         .to(this.characters.shellySide, {
+            x: `-${config.moveDistance}`, // Moves from right: -30vw to right: 0
             opacity: 1,
-            scale: 1,
-            x: "-45vw",
-            duration: 1,
+            scale: config.characterScale,
+            duration: config.animationDuration,
             ease: "power2.out"
-        }, "-=0.5");
+        }, ">-0.3"); // Start Shelly's animation slightly before Mehdi's finishes
     }
 
+
     /**
-     * Scene 3: Both characters meet in center - using side views
+     * Scene 3: Both characters meet (responsive)
      */
-    createScene3() {
+    createResponsiveScene3() {
+        const config = this.getCurrentConfig();
+        
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: ".container",
                 start: "40% top",
                 end: "60% bottom",
-                scrub: 1,
+                scrub: config.scrollSensitivity,
                 onUpdate: (self) => {
                     this.updateTextForProgress(3, self.progress);
                 }
             }
         });
 
-        // Bring both side characters closer to center but don't overlap
-        tl.to(this.characters.mehdiSide, {
-            opacity: 1,
-            scale: 1,
-            x: "50vw", // Closer to center but still left
-            duration: 0.5,
-            ease: "power2.out"
-        })
+        // First, ensure both characters are visible and in their starting positions
+        // Mehdi is already on the left. Shelly exits from her scene 2 position.
+        tl.to(this.characters.shellySide, { x: 0, opacity: 0, duration: 0.5 })
+        // Bring Mehdi (side view) back into the scene on the left
+        .to(this.characters.mehdiSide, {
+                opacity: 1,
+                x: config.moveDistance, // His end position from scene 1
+                duration: config.animationDuration
+        }, 0)
+        // Bring Shelly (side view) into the scene on the right
         .to(this.characters.shellySide, {
-            x: "-50vw", // Closer to center but still right
-            duration: 1,
-            ease: "power2.inOut"
-        }, "-=0.5");
+                opacity: 1,
+                x: `-${config.moveDistance}`, // Her end position from scene 2
+                duration: config.animationDuration
+        }, 0)
+        // They now move towards the center to 'meet'
+        .to(this.characters.mehdiSide, {
+                x: `+=${config.meetDistance}`,
+                duration: config.animationDuration,
+                ease: "power2.inOut"
+        }, ">-0.5")
+        .to(this.characters.shellySide, {
+                x: `+=${config.meetDistance}`,
+                duration: config.animationDuration,
+                ease: "power2.inOut"
+        }, "<");
     }
 
     /**
-     * Scene 4: Love develops - switch to front views
+     * Scene 4: Love develops - front views (responsive)
      */
-    createScene4() {
+    createResponsiveScene4() {
+        const config = this.getCurrentConfig();
+        
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: ".container",
                 start: "60% top",
                 end: "80% bottom",
-                scrub: 1,
+                scrub: config.scrollSensitivity,
                 onUpdate: (self) => {
                     this.updateTextForProgress(4, self.progress);
                 }
             }
         });
-        this.characters.heart.style.opacity = "1";
-        // Hide side views and show front views for intimate conversation
+
+        // Fade out the side-view characters
         tl.to([this.characters.mehdiSide, this.characters.shellySide], {
             opacity: 0,
-            scale: 0.8,
-            duration: 0.5
+            duration: config.animationDuration * 0.4
         })
+        // Fade in the front-view characters who are already positioned close together via CSS
         .to([this.characters.mehdiFront, this.characters.shellyFront], {
             opacity: 1,
-            scale: 1,
-            duration: 1,
+            scale: config.characterScale,
+            duration: config.animationDuration,
             ease: "power2.out"
-        }, "-=0.3")
-        .to([this.characters.heart], {
-            opacity: 1,
-            scale: 1,
-            duration: 1,
-            ease: "back.out(1.7)",
-        }, "-=0.3");
+        }, ">-0.2");
     }
 
     /**
-     * Scene 5: Heart appears - Love declared
+     * Scene 5: Heart appears (responsive) - MODIFIED
      */
-    createScene5() {
+    createResponsiveScene5() {
+        const config = this.getCurrentConfig();
+        
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: ".container",
                 start: "80% top",
                 end: "100% bottom",
-                scrub: 1,
+                scrub: config.scrollSensitivity,
                 onUpdate: (self) => {
                     this.updateTextForProgress(5, self.progress);
-                    
-                    // Handle heart animation
-                    if (self.progress > 0.3) {
-                        this.showHeart();
-                        if (self.progress > 0.5) {
-                            this.animateHeart();
-                        }
-                    } else {
-                        this.hideHeart();
-                    }
                 }
             }
         });
 
-        // Scale up characters slightly for the final romantic scene
+        // Final scene: Characters scale up slightly, and the heart appears and animates
+        const finalCharacterScale = config.characterScale * 1.05; // A subtle 5% increase
+        
         tl.to([this.characters.mehdiFront, this.characters.shellyFront], {
-            scale: 1.1,
-            duration: 0.5,
+            scale: finalCharacterScale,
+            duration: config.animationDuration,
             ease: "power2.inOut"
         })
         .to(this.characters.heart, {
             opacity: 1,
-            scale: 1,
-            duration: 1,
-            ease: "back.out(1.7)"
-        }, "-=0.3");
+            scale: config.heartScale,
+            duration: config.animationDuration * 1.5, // Make heart appear slower
+            ease: "back.out(2)", // A nice bouncy ease
+        }, ">-0.5");
     }
 
-    /**
-     * Show heart with proper positioning
-     */
+    // Heart animation methods (with responsive adjustments)
     showHeart() {
         if (this.characters.heart && !this.characters.heart.classList.contains('visible')) {
+            const config = this.getCurrentConfig();
             this.characters.heart.classList.add('visible');
             gsap.to(this.characters.heart, {
                 opacity: 1,
-                scale: 1,
+                scale: config.heartScale,
                 duration: 0.8,
                 ease: "back.out(1.7)"
             });
         }
     }
 
-    /**
-     * Hide heart
-     */
     hideHeart() {
         if (this.characters.heart && this.characters.heart.classList.contains('visible')) {
             this.characters.heart.classList.remove('visible', 'animate');
@@ -410,18 +662,12 @@ class StoryAnimationController {
         }
     }
 
-    /**
-     * Animate heart with bounce effect
-     */
     animateHeart() {
         if (this.characters.heart && !this.characters.heart.classList.contains('animate')) {
             this.characters.heart.classList.add('animate');
         }
     }
 
-    /**
-     * Stop heart animation
-     */
     stopHeartAnimation() {
         if (this.characters.heart) {
             this.characters.heart.classList.remove('animate');
@@ -432,10 +678,7 @@ class StoryAnimationController {
         }
     }
 
-    /**
-     * Play story text with typing animation
-     * @param {string} textKey - Key from STORY_TEXTS object
-     */
+    // Text methods (unchanged but with responsive text box)
     async playStoryText(textKey) {
         if (!this.textBoxManager || !window.STORY_TEXTS) {
             console.warn(`Cannot display text: ${textKey}`);
@@ -460,10 +703,6 @@ class StoryAnimationController {
         }
     }
 
-    /**
-     * Play story text instantly (for scroll restoration)
-     * @param {string} textKey - Key from STORY_TEXTS object
-     */
     playStoryTextInstant(textKey) {
         if (!this.textBoxManager || !window.STORY_TEXTS) {
             console.warn(`Cannot display text: ${textKey}`);
@@ -489,53 +728,52 @@ class StoryAnimationController {
     }
 
     /**
-     * Start the story animation sequence
+     * Start story animation with responsive optimizations
      */
     startStoryAnimation() {
-        console.log('🎬 Story animation started!');
+        console.log('🎬 Responsive story animation started!');
+        console.log(`📱 Device: ${this.isMobile ? 'Mobile' : this.isTablet ? 'Tablet' : 'Desktop'}`);
         
-        // Add smooth scrolling
-        this.setupSmoothScrolling();
+        this.setupResponsiveSmoothScrolling();
+        this.setupResponsiveKeyboardControls();
         
-        // Add keyboard controls for development
-        this.setupKeyboardControls();
+        // Add touch optimizations for mobile
+        if (this.isMobile) {
+            this.setupTouchOptimizations();
+        }
     }
 
     /**
-     * Setup smooth scrolling behavior
+     * Setup responsive smooth scrolling
      */
-    setupSmoothScrolling() {
-        // Add CSS for smooth scrolling
-        document.documentElement.style.scrollBehavior = 'smooth';
-        
-        // Optional: Add custom easing for scroll
-        gsap.to("body", {
-            duration: 0.1,
-            ease: "power2.out"
-        });
+    setupResponsiveSmoothScrolling() {
+        // Adjust scroll behavior for mobile
+        if (this.isMobile) {
+            document.documentElement.style.scrollBehavior = 'auto'; // Better for mobile
+        } else {
+            document.documentElement.style.scrollBehavior = 'smooth';
+        }
     }
 
     /**
-     * Setup keyboard controls for development/testing
+     * Setup responsive keyboard controls
      */
-    setupKeyboardControls() {
+    setupResponsiveKeyboardControls() {
         document.addEventListener('keydown', (e) => {
+            const scrollAmount = window.innerHeight * (this.isMobile ? 0.15 : 0.2);
+            
             switch(e.key) {
                 case 'ArrowDown':
-                    // Scroll down 20%
-                    window.scrollBy(0, window.innerHeight * 0.2);
+                    window.scrollBy(0, scrollAmount);
                     break;
                 case 'ArrowUp':
-                    // Scroll up 20%
-                    window.scrollBy(0, -window.innerHeight * 0.2);
+                    window.scrollBy(0, -scrollAmount);
                     break;
                 case ' ':
-                    // Space bar: skip to next scene
                     e.preventDefault();
                     this.skipToNextScene();
                     break;
                 case 'r':
-                    // R key: restart animation
                     window.scrollTo(0, 0);
                     break;
             }
@@ -543,16 +781,38 @@ class StoryAnimationController {
     }
 
     /**
-     * Skip to next scene (for development)
+     * Setup touch optimizations for mobile devices
      */
-    skipToNextScene() {
-        this.currentScene++;
-        const targetScroll = (this.currentScene * 0.2) * document.body.scrollHeight;
-        window.scrollTo(0, Math.min(targetScroll, document.body.scrollHeight));
+    setupTouchOptimizations() {
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Add momentum scrolling for iOS
+        document.body.style.webkitOverflowScrolling = 'touch';
+        
+        // Optimize scroll performance
+        document.addEventListener('touchstart', () => {}, { passive: true });
+        document.addEventListener('touchmove', () => {}, { passive: true });
     }
 
     /**
-     * Reset animation to beginning
+     * Skip to next scene (responsive)
+     */
+    skipToNextScene() {
+        this.currentScene = Math.min(5, this.currentScene + 1);
+        const targetScroll = (this.currentScene * 0.2) * (document.body.scrollHeight - window.innerHeight);
+        window.scrollTo(0, Math.min(targetScroll, document.body.scrollHeight - window.innerHeight));
+    }
+
+    /**
+     * Reset animation (responsive)
      */
     resetAnimation() {
         window.scrollTo(0, 0);
@@ -566,51 +826,65 @@ class StoryAnimationController {
             }
         });
 
-        // Stop heart animation
         this.stopHeartAnimation();
         
-        // Clear text
         if (this.textBoxManager) {
             this.textBoxManager.clearText();
         }
+        
+        // Reapply responsive states
+        setTimeout(() => {
+            this.setResponsiveCharacterStates();
+        }, 100);
     }
 
     /**
      * Destroy all animations and clean up
      */
     destroy() {
+        // Remove media query listeners
+        Object.values(this.mediaQueries).forEach(mq => {
+            if (mq.removeListener) {
+                mq.removeListener(() => {});
+            }
+        });
+        
         ScrollTrigger.killAll();
+        
         if (this.timeline) {
             this.timeline.kill();
         }
+        
         if (this.heartAnimation) {
             this.heartAnimation.kill();
         }
+        
         if (this.textBoxManager) {
             this.textBoxManager.destroy();
         }
     }
 }
 
-// Initialize the story animation when the script loads
-const storyController = new StoryAnimationController();
+// Initialize the responsive story animation
+const responsiveStoryController = new ResponsiveStoryAnimationController();
 
 // Export for global access
-window.storyController = storyController;
+window.storyController = responsiveStoryController;
 
+// Enhanced dev helpers with responsive info
 window.devHelpers = {
     skipToScene: (sceneNumber) => {
-        const targetScroll = (sceneNumber * 0.2) * document.body.scrollHeight;
-        window.scrollTo(0, Math.min(targetScroll, document.body.scrollHeight));
+        const targetScroll = (sceneNumber * 0.2) * (document.body.scrollHeight - window.innerHeight);
+        window.scrollTo(0, Math.min(targetScroll, document.body.scrollHeight - window.innerHeight));
     },
     
     resetStory: () => {
-        storyController.resetAnimation();
+        responsiveStoryController.resetAnimation();
     },
     
     testTextBox: () => {
         if (window.storyTextBox && window.STORY_TEXTS) {
-            storyController.playStoryText('mehdiEnters');
+            responsiveStoryController.playStoryText('mehdiEnters');
         }
     },
     
@@ -624,8 +898,25 @@ window.devHelpers = {
         if (scrollProgress <= 0.6) return 3;
         if (scrollProgress <= 0.8) return 4;
         return 5;
+    },
+    
+    getDeviceInfo: () => {
+        return {
+            isMobile: responsiveStoryController.isMobile,
+            isTablet: responsiveStoryController.isTablet,
+            isLandscape: responsiveStoryController.isLandscape,
+            viewportWidth: responsiveStoryController.viewportWidth,
+            viewportHeight: responsiveStoryController.viewportHeight,
+            config: responsiveStoryController.getCurrentConfig()
+        };
+    },
+    
+    forceRefresh: () => {
+        responsiveStoryController.refreshAnimations();
     }
 };
 
+console.log('📱 Responsive Story Animation loaded!');
 console.log('Use arrow keys to scroll, spacebar to skip scenes, R to restart');
-console.log('Dev helpers: devHelpers.skipToScene(1-5), devHelpers.resetStory(), devHelpers.testTextBox(), devHelpers.getCurrentScene()');
+console.log('Dev helpers: devHelpers.getDeviceInfo(), devHelpers.forceRefresh()');
+console.log('Mobile optimizations: Touch handling, responsive scaling, viewport adjustments');
